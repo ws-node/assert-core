@@ -17,7 +17,11 @@
   },
   "homepage": "https://github.com/ws-node/assert-core#readme",
   "devDependencies": {
+    "ts-node": "^7.0.1",
     "tslint": "^5.11.0",
     "typescript": "^3.0.3"
+  },
+  "dependencies": {
+    "reflect-metadata": "^0.1.12"
   }
 }

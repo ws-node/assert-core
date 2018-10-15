@@ -1,19 +1,25 @@
-import { Constructor } from "./base";
+import { AbstractConstructor } from "./base";
 
-type PrimitiveTypeConstructor<T> =
+export type PrimitiveTypeConstructor<T> =
   T extends number ? typeof Number :
   T extends string ? typeof String :
   T extends boolean ? typeof Boolean :
-  Constructor<T>;
+  AbstractConstructor<T> | null;
+
+interface PropertyDefine<T = any> {
+  name: string;
+  nullable: boolean;
+  define: TypeDefine<T>;
+}
 
 export interface TypeDefine<T> {
-  primitive: boolean;
+  extends: TypeDefine<any> | null;
   constructor: PrimitiveTypeConstructor<T>;
-  nullable: boolean;
+  properties: { [prop: string]: PropertyDefine };
 }
 
 const x: TypeDefine<number> = {
-  primitive: true,
+  extends: null,
   constructor: Number,
-  nullable: false
+  properties: {}
 };
