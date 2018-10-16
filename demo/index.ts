@@ -1,10 +1,11 @@
-import { DefineType, ExtendsFrom, Property, Types, assertType } from "../src";
+import { DefineType, ExtendsFrom, Property, Types, List, assertType } from "../src";
+import { IPropertyAssertErrors } from "../src/metadata";
 
 @DefineType()
 abstract class TestBaseClass {
 
-  @Property()
-  public abstract name: string | boolean;
+  @Property([String, Number])
+  public abstract name: string | number;
 
 }
 
@@ -12,11 +13,11 @@ abstract class TestBaseClass {
 @ExtendsFrom(TestBaseClass)
 abstract class TestClass extends TestBaseClass {
 
-  // @Property()
-  // public abstract name: string;
-
   @Property()
   public abstract value: number;
+
+  @List(Number)
+  public abstract values: number[];
 
 }
 
@@ -26,7 +27,6 @@ setTimeout(() => {
 }, 5000000);
 
 const result = assertType(TestClass, {
-  name: 123,
+  name: null,
   value: false
 });
-console.log(result);

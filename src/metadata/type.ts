@@ -9,7 +9,8 @@ export type PrimitiveTypeConstructor<T> =
 export interface PropertyDefine<T = any> {
   name: string;
   nullable: boolean;
-  define: TypeDefine<T>;
+  array: boolean;
+  define: Array<TypeDefine<T>>;
 }
 
 export interface ExtendsDefine<T> {

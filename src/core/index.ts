@@ -3,7 +3,8 @@ import { TypeDefine } from "../metadata";
 const TypeRelationMap = new Map<any, TypeDefine<any>>([
   [Number, { extends: null, constructor: Number, properties: {}, primitive: true }],
   [String, { extends: null, constructor: String, properties: {}, primitive: true }],
-  [Boolean, { extends: null, constructor: Boolean, properties: {}, primitive: true }]
+  [Boolean, { extends: null, constructor: Boolean, properties: {}, primitive: true }],
+  [Object, { extends: null, constructor: Object, properties: {}, primitive: false }]
 ]);
 
 const Types = {
@@ -27,9 +28,12 @@ const Types = {
       default: return false;
     }
   },
+  isObject(target: any) {
+    return target && target === Object;
+  },
   /** 获取定义的map选择器 */
   getSelector(target: any) {
-    return this.isPrimitive(target) ? target : target.prototype;
+    return (this.isPrimitive(target) || this.isObject(target)) ? target : target.prototype;
   }
 };
 

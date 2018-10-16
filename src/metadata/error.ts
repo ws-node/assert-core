@@ -16,7 +16,7 @@ export interface IPropertyError {
   message: string;
   propertyKey: string;
   parent: any;
-  shouldType?: any;
+  shouldType?: any[];
   exist?: any;
 }
 
@@ -27,5 +27,5 @@ export interface IAssertErrors {
 
 export interface IPropertyAssertErrors {
   target: any;
-  errors: IPropertyError[];
+  errors: (IPropertyError | IPropertyAssertErrors)[];
 }
