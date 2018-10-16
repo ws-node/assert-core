@@ -1,10 +1,10 @@
-import { DefineType, ExtendsFrom, Property, Types } from "../src";
+import { DefineType, ExtendsFrom, Property, Types, assertType } from "../src";
 
 @DefineType()
 abstract class TestBaseClass {
 
   @Property()
-  public abstract name: string;
+  public abstract name: string | boolean;
 
 }
 
@@ -12,12 +12,21 @@ abstract class TestBaseClass {
 @ExtendsFrom(TestBaseClass)
 abstract class TestClass extends TestBaseClass {
 
+  // @Property()
+  // public abstract name: string;
+
   @Property()
   public abstract value: number;
 
 }
 
-console.log(Types);
+console.log(Array.from(Types.source.entries()));
 setTimeout(() => {
-  console.log("123456");
-}, 50000);
+  console.log("debug end");
+}, 5000000);
+
+const result = assertType(TestClass, {
+  name: 123,
+  value: false
+});
+console.log(result);

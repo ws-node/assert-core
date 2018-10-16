@@ -1,26 +1,28 @@
 import { Types } from "../core";
-import { AbstractConstructor } from "../metadata/base";
+import { AbstractConstructor } from "../metadata";
 import { TypeDefine, PrimitiveTypeConstructor } from "../metadata";
 import { Metadata } from "../utils";
 
-function tryGetType(prototype: any): TypeDefine<any>;
-function tryGetType(prototype: any, allowNull: true): TypeDefine<any> | null;
-function tryGetType(prototype: any, allowNull?: boolean) {
-  let define = Types.get(prototype);
+function tryGetType(type: any): TypeDefine<any>;
+function tryGetType(type: any, allowNull: true): TypeDefine<any> | null;
+function tryGetType(type: any, allowNull?: boolean) {
+  const selector = Types.getSelector(type);
+  let define = Types.get(selector);
   if (allowNull) return define || null;
   if (!define) {
     define = {
       extends: null,
       constructor: null,
-      properties: {}
+      properties: {},
+      primitive: false
     };
-    Types.set(prototype, define);
+    Types.set(selector, define);
   }
   return define;
 }
 
-function tryGetProperty(prototype: any, key: string) {
-  const define = tryGetType(prototype);
+function tryGetProperty(type: any, key: string) {
+  const define = tryGetType(type);
   let property = define.properties[key];
   if (!property) {
     property = define.properties[key] = {
@@ -29,34 +31,38 @@ function tryGetProperty(prototype: any, key: string) {
       define: {
         extends: null,
         constructor: null,
-        properties: {}
+        properties: {},
+        primitive: false
       }
     };
-    Types.set(prototype, define);
   }
   return property;
 }
 
 function DefineTypeFactory() {
   return function defineType<T>(target: AbstractConstructor<T>) {
-    const define = tryGetType(target.prototype);
+    const define = tryGetType(target);
     define.constructor = target;
   };
 }
 
 function ExtendsFromFactory<E>(extendsTarget: AbstractConstructor<E>) {
   return function extendsFrom<T>(target: AbstractConstructor<T>) {
-    const define = tryGetType(target.prototype);
-    define.extends = tryGetType(extendsTarget.prototype, true);
+    const define = tryGetType(target);
+    const selector = Types.getSelector(extendsTarget);
+    define.extends = {
+      target: selector,
+      define: tryGetType(extendsTarget, true)
+    };
   };
 }
 
 function PropertyFactory<P>(type?: PrimitiveTypeConstructor<P>) {
   return function defineProperty<T>(target: T, propertyKey: string, descriptor?: PropertyDescriptor) {
-    const property = tryGetProperty(target, propertyKey);
-    let ctor = Metadata.tryGetProperty(target, propertyKey);
-    if (ctor === null) ctor = type;
-    property.define = tryGetType(type && type.prototype);
+    const property = tryGetProperty(target.constructor, propertyKey);
+    let propertyCtor = Metadata.tryGetPropertyType(target, propertyKey);
+    if (propertyCtor === null) propertyCtor = type;
+    property.define = tryGetType(propertyCtor);
   };
 }
 
