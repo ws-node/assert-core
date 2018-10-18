@@ -1,6 +1,7 @@
-import { TypeDefine } from "../metadata";
+import { TypeDefine, TypeDefineKey, TypeDefineConstructor } from "../metadata";
+import get from "lodash/get";
 
-const TypeRelationMap = new Map<any, TypeDefine<any>>([
+const TypeRelationMap = new Map<TypeDefineKey<any>, TypeDefine<any>>([
   [Number, { extends: null, constructor: Number, properties: {}, primitive: true }],
   [String, { extends: null, constructor: String, properties: {}, primitive: true }],
   [Boolean, { extends: null, constructor: Boolean, properties: {}, primitive: true }],
@@ -9,15 +10,15 @@ const TypeRelationMap = new Map<any, TypeDefine<any>>([
 
 const Types = {
   source: TypeRelationMap,
-  get(target: any) {
-    return TypeRelationMap.get(target) || null;
+  get<T>(key: TypeDefineKey<T>) {
+    return TypeRelationMap.get(key) || null;
   },
-  set<T>(target: any, value: TypeDefine<T>) {
-    TypeRelationMap.set(target, value);
+  set<T>(key: any, value: TypeDefine<T>) {
+    TypeRelationMap.set(key, value);
   },
   /** 检查定义是否为number、boolean和string类型 */
-  isPrimitive(target: any) {
-    return !target || target === Number || target === String || target === Boolean;
+  isPrimitive<T>(key: TypeDefineConstructor<T>) {
+    return !key || key === Number || key === String || key === Boolean;
   },
   /** 检查number、boolean和string类型值是否匹配类型 */
   checkPrimitive(value: any, type: any) {
@@ -28,12 +29,17 @@ const Types = {
       default: return false;
     }
   },
-  isObject(target: any) {
-    return target && target === Object;
+  isObject<T>(key: TypeDefineKey<T>) {
+    return key && key === Object;
   },
   /** 获取定义的map选择器 */
-  getSelector(target: any) {
-    return (this.isPrimitive(target) || this.isObject(target)) ? target : target.prototype;
+  getSelector<T>(key: TypeDefineConstructor<T> | null) {
+    return (this.isPrimitive(key) || this.isObject(key)) ? key : get(key, "prototype", null);
+  },
+  /** 解析类型定义 */
+  resolve(key: any) {
+    const selector = this.getSelector(key);
+    return this.get(selector);
   }
 };
 

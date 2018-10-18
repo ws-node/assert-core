@@ -1,6 +1,6 @@
 import { Types } from "../core";
-import { AbstractConstructor } from "../metadata";
-import { TypeDefine, PrimitiveTypeConstructor } from "../metadata";
+import { TypeDefineConstructor } from "../metadata";
+import { TypeDefine } from "../metadata";
 import { Metadata } from "../utils";
 
 function tryGetType(type: any): TypeDefine<any>;
@@ -28,6 +28,7 @@ function tryGetProperty(type: any, key: string) {
     property = define.properties[key] = {
       name: key,
       nullable: false,
+      strict: false,
       array: false,
       define: []
     };
@@ -36,14 +37,14 @@ function tryGetProperty(type: any, key: string) {
 }
 
 function DefineTypeFactory() {
-  return function defineType<T>(target: AbstractConstructor<T>) {
+  return function defineType<T>(target: TypeDefineConstructor<T>) {
     const define = tryGetType(target);
     define.constructor = target;
   };
 }
 
-function ExtendsFromFactory<E>(extendsTarget: AbstractConstructor<E>) {
-  return function extendsFrom<T>(target: AbstractConstructor<T>) {
+function ExtendsFromFactory<E>(extendsTarget: TypeDefineConstructor<E>) {
+  return function extendsFrom<T>(target: TypeDefineConstructor<T>) {
     const define = tryGetType(target);
     const selector = Types.getSelector(extendsTarget);
     define.extends = {
@@ -53,7 +54,7 @@ function ExtendsFromFactory<E>(extendsTarget: AbstractConstructor<E>) {
   };
 }
 
-function PropertyFactory<P = any>(type?: PrimitiveTypeConstructor<P> | PrimitiveTypeConstructor<any>[]) {
+function PropertyFactory<P = any>(type?: TypeDefineConstructor<P> | TypeDefineConstructor<any>[]) {
   return function defineProperty<T>(target: T, propertyKey: string, descriptor?: PropertyDescriptor) {
     const property = tryGetProperty(target.constructor, propertyKey);
     const propertyCtor = type || Metadata.tryGetPropertyType(target, propertyKey);
@@ -71,7 +72,7 @@ function PropertyFactory<P = any>(type?: PrimitiveTypeConstructor<P> | Primitive
   };
 }
 
-function ListFactory<P = any>(type?: PrimitiveTypeConstructor<P> | PrimitiveTypeConstructor<any>[]) {
+function ListFactory<P = any>(type?: TypeDefineConstructor<P> | TypeDefineConstructor<any>[]) {
   return function defineProperty<T>(target: T, propertyKey: string, descriptor?: PropertyDescriptor) {
     const property = tryGetProperty(target.constructor, propertyKey);
     property.array = true;
@@ -79,9 +80,18 @@ function ListFactory<P = any>(type?: PrimitiveTypeConstructor<P> | PrimitiveType
   };
 }
 
+function NullableFactory(strict = false) {
+  return function defineProperty<T>(target: T, propertyKey: string, descriptor?: PropertyDescriptor) {
+    const property = tryGetProperty(target.constructor, propertyKey);
+    property.nullable = true;
+    property.strict = !!strict;
+  };
+}
+
 export {
   DefineTypeFactory as DefineType,
   ExtendsFromFactory as ExtendsFrom,
-  PropertyFactory as Property,
+  NullableFactory as Nullable,
+  PropertyFactory as Primitive,
   ListFactory as List
 };

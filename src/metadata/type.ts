@@ -1,14 +1,19 @@
 import { AbstractConstructor } from "./base";
 
 export type PrimitiveTypeConstructor<T> =
-  T extends number ? typeof Number :
-  T extends string ? typeof String :
-  T extends boolean ? typeof Boolean :
-  AbstractConstructor<T> | null;
+  T extends Number ? typeof Number :
+  T extends String ? typeof String :
+  T extends Boolean ? typeof Boolean :
+  T extends Object ? typeof Object :
+  null;
+
+export type TypeDefineKey<T> = { prototype: T } | PrimitiveTypeConstructor<T>;
+export type TypeDefineConstructor<T> = AbstractConstructor<T> | PrimitiveTypeConstructor<T>;
 
 export interface PropertyDefine<T = any> {
   name: string;
   nullable: boolean;
+  strict: boolean;
   array: boolean;
   define: Array<TypeDefine<T>>;
 }
@@ -20,7 +25,7 @@ export interface ExtendsDefine<T> {
 
 export interface TypeDefine<T> {
   extends: ExtendsDefine<any> | null;
-  constructor: PrimitiveTypeConstructor<T>;
+  constructor: TypeDefineConstructor<T>;
   properties: { [prop: string]: PropertyDefine };
   primitive: boolean;
 }
