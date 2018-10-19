@@ -7,15 +7,25 @@ export type PrimitiveTypeConstructor<T> =
   T extends Object ? typeof Object :
   null;
 
+export type PrimitiveValueType<T> =
+  T extends Number ? Number :
+  T extends String ? String :
+  T extends Boolean ? Boolean :
+  T extends Object ? Object :
+  null;
+
 export type TypeDefineKey<T> = { prototype: T } | PrimitiveTypeConstructor<T>;
 export type TypeDefineConstructor<T> = AbstractConstructor<T> | PrimitiveTypeConstructor<T>;
+
+export type DefaultValueType<T> = PrimitiveValueType<T> | { __proto__?: any };
 
 export interface PropertyDefine<T = any> {
   name: string;
   nullable: boolean;
   strict: boolean;
   array: boolean;
-  define: Array<TypeDefine<T>>;
+  define: TypeDefine<T> | null;
+  defaultvalue: T | undefined;
 }
 
 export interface ExtendsDefine<T> {

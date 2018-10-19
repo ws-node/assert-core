@@ -1,13 +1,13 @@
 import { IAssertInvokeMethod } from "../metadata/assert";
-import { Types } from "../core";
+import { Check } from "../utils";
 import get from "lodash/get";
 
-interface PrimitiveCheckOptions {
+interface ObjectCheckOptions {
   isProperty: boolean;
   propertyName?: string;
 }
 
-export const PrimitiveValidator: IAssertInvokeMethod<PrimitiveCheckOptions> = (context, options) => {
+export const ObjectValidator: IAssertInvokeMethod<ObjectCheckOptions> = (context, options) => {
   const {
     thrower: handler,
     openTransform: transform,
@@ -17,11 +17,10 @@ export const PrimitiveValidator: IAssertInvokeMethod<PrimitiveCheckOptions> = (c
   const { hostValue, hostDefine, currentValue: value, currentDefine: define } = context;
   if (!define) return true;
   const propertyName = get(options, "propertyName", "") || "";
-  const is = Types.checkPrimitive(value, define.constructor);
-  if (!is) {
+  if (define.constructor !== Object || !Check.isObject(value)) {
     handler.push({
       parent: hostDefine || null,
-      message: "Value to be checked is primitive, but type is not match the value.",
+      message: "Value to be checked is object, but type is not object.",
       existValue: value,
       shouldDefine: define,
       propertyName

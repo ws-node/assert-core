@@ -1,7 +1,10 @@
 import { Types } from "../core";
-import { TypeDefineConstructor } from "../metadata";
+import { TypeDefineConstructor, PrimitiveTypeConstructor, AbstractConstructor, DefaultValueType } from "../metadata";
+import { PropertyDecorator } from "../metadata";
 import { TypeDefine } from "../metadata";
 import { Metadata } from "../utils";
+
+const DEFAULT_UNDEFINED = "__undefined__";
 
 function tryGetType(type: any): TypeDefine<any>;
 function tryGetType(type: any, allowNull: true): TypeDefine<any> | null;
@@ -30,7 +33,8 @@ function tryGetProperty(type: any, key: string) {
       nullable: false,
       strict: false,
       array: false,
-      define: []
+      define: null,
+      defaultvalue: undefined
     };
   }
   return property;
@@ -54,29 +58,44 @@ function ExtendsFromFactory<E>(extendsTarget: TypeDefineConstructor<E>) {
   };
 }
 
-function PropertyFactory<P = any>(type?: TypeDefineConstructor<P> | TypeDefineConstructor<any>[]) {
+function PropertyFactory<P = any>(type?: TypeDefineConstructor<P>, defaultValue?: DefaultValueType<P>): PropertyDecorator {
   return function defineProperty<T>(target: T, propertyKey: string, descriptor?: PropertyDescriptor) {
     const property = tryGetProperty(target.constructor, propertyKey);
     const propertyCtor = type || Metadata.tryGetPropertyType(target, propertyKey);
-    const defines: any[] = [];
-    if (propertyCtor instanceof Array) {
-      propertyCtor.forEach(p => {
-        const def = tryGetType(p);
-        if (def !== null) defines.push(def);
-      });
+    property.define = tryGetType(propertyCtor);
+    if (defaultValue === DEFAULT_UNDEFINED) {
+      property.defaultvalue = _resolveDefaultValue(propertyCtor);
     } else {
-      const def = tryGetType(propertyCtor);
-      if (def !== null) defines.push(def);
+      property.defaultvalue = defaultValue;
     }
-    property.define.push(...defines);
   };
 }
 
-function ListFactory<P = any>(type?: TypeDefineConstructor<P> | TypeDefineConstructor<any>[]) {
+function ListFactory<P = any>(type?: TypeDefineConstructor<P>): PropertyDecorator;
+function ListFactory<P = any>(defaultValue?: DefaultValueType<P>): PropertyDecorator;
+function ListFactory<P = any>(type: TypeDefineConstructor<P>, defaultValue: DefaultValueType<P>): PropertyDecorator;
+function ListFactory(...args: any[]) {
+  const { type, defaultValue } = _resolveTypeDefaultValue(...args);
   return function defineProperty<T>(target: T, propertyKey: string, descriptor?: PropertyDescriptor) {
     const property = tryGetProperty(target.constructor, propertyKey);
     property.array = true;
-    PropertyFactory(type)(target, propertyKey, descriptor);
+    PropertyFactory(type, defaultValue)(target, propertyKey, descriptor);
+  };
+}
+
+function PrimitiveFactory<P = any>(type?: PrimitiveTypeConstructor<P>): PropertyDecorator;
+function PrimitiveFactory<P = any>(defaultValue?: DefaultValueType<P>): PropertyDecorator;
+function PrimitiveFactory<P = any>(type: TypeDefineConstructor<P>, defaultValue: DefaultValueType<P>): PropertyDecorator;
+function PrimitiveFactory(...args: any[]) {
+  const { type, defaultValue } = _resolveTypeDefaultValue(...args);
+  return function defineProperty<T>(target: T, propertyKey: string, descriptor?: PropertyDescriptor) {
+    PropertyFactory(type, defaultValue)(target, propertyKey, descriptor);
+  };
+}
+
+function ComplexFactory<P = any>(type?: AbstractConstructor<P>) {
+  return function defineProperty<T>(target: T, propertyKey: string, descriptor?: PropertyDescriptor) {
+    PropertyFactory(type, undefined)(target, propertyKey, descriptor);
   };
 }
 
@@ -88,10 +107,34 @@ function NullableFactory(strict = false) {
   };
 }
 
+function _resolveTypeDefaultValue(...args: any[]) {
+  let type = args[0];
+  let defaultValue = args.length === 2 ? args[1] : DEFAULT_UNDEFINED;
+  if (args.length === 1 && (!("name" in Object(type)) || typeof type !== "function")) {
+    defaultValue = type;
+    type = undefined;
+  }
+  return {
+    type,
+    defaultValue
+  };
+}
+
+function _resolveDefaultValue<T>(ctor: TypeDefineConstructor<T>): any {
+  switch (ctor) {
+    case Number: return 0;
+    case String: return "";
+    case Boolean: return false;
+    case Object: return {};
+    default: return {};
+  }
+}
+
 export {
   DefineTypeFactory as DefineType,
   ExtendsFromFactory as ExtendsFrom,
   NullableFactory as Nullable,
-  PropertyFactory as Primitive,
-  ListFactory as List
+  PrimitiveFactory as Primitive,
+  ListFactory as List,
+  ComplexFactory as Complex
 };
