@@ -1,5 +1,6 @@
-import { IAssertInvokeMethod, AssertType } from "../metadata/assert";
+import { IAssertInvokeMethod, AssertType, ErrorLevel } from "../metadata/assert";
 import get from "lodash/get";
+import set from "lodash/set";
 
 interface ComplexCheckOptions {
   isProperty: boolean;
@@ -16,7 +17,8 @@ export const ComplexValidator: IAssertInvokeMethod<ComplexCheckOptions> = (conte
     openTransform: transform,
     propertyValidator: selfValidator,
     isProperty,
-    defaultValue
+    defaultValue,
+    onError
   } = options;
   const { hostValue, hostDefine, currentValue: value, currentDefine: define } = context;
   if (!define) return true;
@@ -31,7 +33,8 @@ export const ComplexValidator: IAssertInvokeMethod<ComplexCheckOptions> = (conte
       thrower: handler,
       openTransform: transform,
       isProperty,
-      propertyName
+      propertyName,
+      onError,
     });
   if (!succ) {
     handler.push({
@@ -41,8 +44,10 @@ export const ComplexValidator: IAssertInvokeMethod<ComplexCheckOptions> = (conte
       shouldDefine: define,
       propertyName
     });
+    onError({ type: ErrorLevel.TypeDismatch });
     if (!transform) return false;
-    if (isProperty) hostValue[propertyName] = defaultValue;
+    // 外部处理
+    // if (isProperty) set(hostValue, propertyName, defaultValue);
   }
   return true;
 };

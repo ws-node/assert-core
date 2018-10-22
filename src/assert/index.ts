@@ -17,7 +17,7 @@ export const Assert = {
       currentValue: value,
       hostDefine: <any>Types.resolve(type),
       currentDefine: <any>Types.resolve(type)
-    }, { openTransform: false, thrower: handler });
+    }, { openTransform: false, thrower: handler, onError: () => { } });
     const errors = handler.show();
     if (errors.length === 0) {
       return { success: true, errors: null, result: value };
@@ -38,7 +38,7 @@ export const Assert = {
       currentValue: value,
       hostDefine: <any>Types.resolve(type),
       currentDefine: <any>Types.resolve(type)
-    }, { openTransform: true, thrower: handler });
+    }, { openTransform: true, thrower: handler, onError: () => { } });
     const errors = handler.show();
     if (errors.length === 0) {
       return { success: true, errors: null, result: value };

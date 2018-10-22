@@ -1,5 +1,6 @@
 import get from "lodash/get";
-import { IAssertInvokeMethod, IAssertContext } from "../metadata/assert";
+import set from "lodash/set";
+import { IAssertInvokeMethod, IAssertContext, ErrorLevel } from "../metadata/assert";
 import { NullValidator } from "./null";
 import { PrimitiveValidator } from "./primitive";
 import { PropertyDefine, TypeDefine } from "../metadata";
@@ -22,14 +23,30 @@ function decideSwitch(toCheck: any, property: PropertyDefine<any>, prestep?: num
   return 6;
 }
 
-function doCheck(context: IAssertContext, property: PropertyDefine<any>, openTransform: boolean, thrower: any) {
+interface IDoCheckScope {
+  context: IAssertContext;
+  property: PropertyDefine<any>;
+  transform: boolean;
+  thrower: any;
+  onError: (error: any) => void;
+}
+
+function doCheck(scope: IDoCheckScope) {
+  const { context, property, transform, thrower, onError } = scope;
   const step = decideSwitch(context.currentValue, property);
-  const common = { isProperty: true, defaultValue: property.defaultvalue, propertyName: property.name, thrower, openTransform };
+  const common = {
+    isProperty: true,
+    defaultValue: property.defaultvalue,
+    propertyName: property.name,
+    openTransform: transform,
+    thrower,
+    onError
+  };
   switch (step) {
     case 1:
       return NullValidator(context, { ...common, nullable: property.nullable, strict: property.strict });
     case 2:
-      return ArrayValidator(context, { ...common, propertyValidator: CoreValidator });
+      return ArrayValidator(context, { ...common, propertyValidator: PropertyValidator, isArrayDefine: property.array });
     case 3:
       return ObjectValidator(context, { ...common });
     case 4:
@@ -46,11 +63,8 @@ export function resolveExtends(props: any, extendsDefine: TypeDefine<any> | null
   return resolveExtends(properties, get(extendsDefine, "extends.define", null));
 }
 
-export const IndexValidator: IAssertInvokeMethod = (context, options) => {
-  const {
-    thrower: handler,
-    openTransform: transform
-  } = options;
+export const IndexValidator: IAssertInvokeMethod<{}> = (context, options) => {
+  const { } = options;
   const {
     currentDefine: define
   } = context;
@@ -88,35 +102,41 @@ export const CoreValidator: IAssertInvokeMethod<CoreCheckOptions> = (context, op
   properties = { ...properties, ...define.properties };
   Object.keys(properties).forEach((prop) => {
     const property: PropertyDefine<any> = properties[prop];
+    const propertValue = get(value, property.name, undefined);
     result = PropertyValidator({
       hostValue: value,
       hostDefine: define,
-      currentValue: (<any>value)[property.name],
+      currentValue: propertValue,
       currentDefine: property.define === null ? undefined : property.define
     }, {
         property,
         thrower: handler,
-        openTransform: transform
+        openTransform: transform,
+        onError: ({ type }) => {
+          if (type === ErrorLevel.NullDismatch && transform) {
+            set(hostValue, property.name, property.defaultvalue);
+          }
+        }
       });
     if (!result && !transform) return false;
-    hostValue[property.name] = property.defaultvalue;
   });
   return true;
 };
 
-interface PropertyCheckOptions<P = any> {
+export interface PropertyCheckOptions<P = any> {
   property: PropertyDefine<P>;
 }
 
 export const PropertyValidator: IAssertInvokeMethod<PropertyCheckOptions> = (context, options) => {
   const {
-    thrower: handler,
+    thrower,
     openTransform: transform,
-    property
+    property,
+    onError
   } = options;
   const {
     currentDefine: define
   } = context;
   if (!define) return true;
-  return doCheck(context, property, transform, handler);
+  return doCheck({ context, property, transform, thrower, onError });
 };

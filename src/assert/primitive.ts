@@ -1,6 +1,8 @@
-import { IAssertInvokeMethod } from "../metadata/assert";
+import { IAssertInvokeMethod, ErrorLevel } from "../metadata/assert";
 import { Types } from "../core";
 import get from "lodash/get";
+import set from "lodash/set";
+import { Check } from '../utils';
 
 interface PrimitiveCheckOptions {
   isProperty: boolean;
@@ -12,13 +14,16 @@ export const PrimitiveValidator: IAssertInvokeMethod<PrimitiveCheckOptions> = (c
     thrower: handler,
     openTransform: transform,
     isProperty,
-    defaultValue
+    defaultValue,
+    onError
   } = options;
   const { hostValue, hostDefine, currentValue: value, currentDefine: define } = context;
   if (!define) return true;
   const propertyName = get(options, "propertyName", "") || "";
+  const isPrimitiveType = Types.isPrimitive(define.constructor);
   const is = Types.checkPrimitive(value, define.constructor);
-  if (!is) {
+  // console.log(options);
+  if (isPrimitiveType && !is) {
     handler.push({
       parent: hostDefine || null,
       message: "Value to be checked is primitive, but type is not match the value.",
@@ -26,8 +31,25 @@ export const PrimitiveValidator: IAssertInvokeMethod<PrimitiveCheckOptions> = (c
       shouldDefine: define,
       propertyName
     });
-    if (!transform) return false;
-    if (isProperty) hostValue[propertyName] = defaultValue;
+    onError({ type: ErrorLevel.TypeDismatch });
+    // 类型不匹配，拒绝提供默认值处理逻辑
+    // if (!transform) return false;
+    // if (isProperty) set(hostValue, propertyName, defaultValue);
+    return false;
+  }
+  if (!isPrimitiveType && Check.isPrimitive(value)) {
+    handler.push({
+      parent: hostDefine || null,
+      message: "Type of value to be checked is not primitive, but exist value is primitive.",
+      existValue: value,
+      shouldDefine: define,
+      propertyName
+    });
+    onError({ type: ErrorLevel.TypeDismatch });
+    // 类型不匹配，拒绝提供默认值处理逻辑
+    // if (!transform) return false;
+    // if (isProperty) set(hostValue, propertyName, defaultValue);
+    return false;
   }
   return true;
 };

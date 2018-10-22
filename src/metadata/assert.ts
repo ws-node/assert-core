@@ -1,4 +1,4 @@
-import { TypeDefine, PropertyDefine } from "./type";
+import { TypeDefine } from "./type";
 
 export enum AssertType {
   All,
@@ -22,6 +22,7 @@ export interface IAssertBaseOptions {
   thrower: IAssertThrower;
   openTransform: boolean;
   defaultValue?: any;
+  onError: (error: IErrorParams) => void;
 }
 
 export interface IAssertOptions<P = any> extends IAssertBaseOptions {
@@ -42,6 +43,15 @@ export interface IAssertError<P = any, S = any, E = any> {
   propertyName: string;
   shouldDefine: TypeDefine<S>;
   existValue: E;
+}
+
+export enum ErrorLevel {
+  TypeDismatch = "TYPE_DISMATCH",
+  NullDismatch = "NULL_DISMATCH"
+}
+
+export interface IErrorParams {
+  type: ErrorLevel;
 }
 
 export type IAssertInvokeMethod<OPTIONS extends ExtendableObject = {}> = <C = any, P = any>(context: IAssertContext<C, P>, options: OPTIONS & IAssertBaseOptions) => boolean;

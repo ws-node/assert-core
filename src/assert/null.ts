@@ -1,5 +1,6 @@
-import { IAssertInvokeMethod } from "../metadata/assert";
+import { IAssertInvokeMethod, ErrorLevel } from "../metadata/assert";
 import get from "lodash/get";
+import set from "lodash/set";
 
 interface NullCheckOptions {
   nullable: boolean;
@@ -15,12 +16,13 @@ export const NullValidator: IAssertInvokeMethod<NullCheckOptions> = (context, op
     defaultValue,
     nullable,
     strict,
-    isProperty
+    isProperty,
+    onError
   } = options;
   const { hostValue, hostDefine, currentValue: value, currentDefine: define } = context;
   if (!define) return true;
   const propertyName = get(options, "propertyName", "") || "";
-  if (!nullable) {
+  if ((value === undefined || value === null) && !nullable) {
     handler.push({
       parent: hostDefine || null,
       message: "Value to be checked is null or undefined, but type is not nullable.",
@@ -28,8 +30,10 @@ export const NullValidator: IAssertInvokeMethod<NullCheckOptions> = (context, op
       shouldDefine: define,
       propertyName
     });
+    onError({ type: ErrorLevel.NullDismatch });
     if (!transform) return false;
-    if (isProperty) hostValue[propertyName] = defaultValue;
+    // 外部处理
+    // if (isProperty) set(hostValue, propertyName, defaultValue);
   }
   if (isProperty && !!strict && !(propertyName in Object(hostValue))) {
     handler.push({
@@ -39,8 +43,10 @@ export const NullValidator: IAssertInvokeMethod<NullCheckOptions> = (context, op
       shouldDefine: define,
       propertyName
     });
+    onError({ type: ErrorLevel.NullDismatch });
     if (!transform) return false;
-    hostValue[propertyName] = defaultValue;
+    // 外部处理
+    // set(hostValue, propertyName, defaultValue);
   }
   return true;
 };

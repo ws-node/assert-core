@@ -39,10 +39,3 @@ export interface TypeDefine<T> {
   properties: { [prop: string]: PropertyDefine };
   primitive: boolean;
 }
-
-const x: TypeDefine<number> = {
-  extends: null,
-  constructor: Number,
-  properties: {},
-  primitive: true
-};
