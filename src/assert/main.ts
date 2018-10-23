@@ -39,14 +39,14 @@ function doCheck(scope: IDoCheckScope) {
     defaultValue: property.defaultvalue,
     propertyName: property.name,
     openTransform: transform,
-    thrower,
+    record: thrower,
     onError
   };
   switch (step) {
     case 1:
       return NullValidator(context, { ...common, nullable: property.nullable, strict: property.strict });
     case 2:
-      return ArrayValidator(context, { ...common, propertyValidator: PropertyValidator, isArrayDefine: property.array });
+      return ArrayValidator(context, { ...common, propertyValidator: PropertyValidator });
     case 3:
       return ObjectValidator(context, { ...common });
     case 4:
