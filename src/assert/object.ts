@@ -10,7 +10,7 @@ interface ObjectCheckOptions {
 
 export const ObjectValidator: IAssertInvokeMethod<ObjectCheckOptions> = (context, options) => {
   const {
-    thrower: handler,
+    record: handler,
     openTransform: transform,
     isProperty,
     defaultValue,

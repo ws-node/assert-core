@@ -1,8 +1,8 @@
-import { IAssertInvokeMethod, IAssertThrower, IAssertError } from "../metadata/assert";
+import { IAssertInvokeMethod, IAssertRecorder, IAssertError } from "../metadata/assert";
 
 export const AssertInvoke: IAssertInvokeMethod = (context, options) => true;
 
-export function createThrower(): IAssertThrower {
+export function createThrower(): IAssertRecorder {
   const errors: IAssertError[] = [];
   return {
     push(error: IAssertError) {

@@ -19,7 +19,7 @@ export interface IAssertContext<C = any, P = any> {
 }
 
 export interface IAssertBaseOptions {
-  thrower: IAssertThrower;
+  record: IAssertRecorder;
   openTransform: boolean;
   defaultValue?: any;
   onError: (error: IErrorParams) => void;
@@ -32,7 +32,7 @@ export interface IAssertOptions<P = any> extends IAssertBaseOptions {
   isProperty: boolean;
 }
 
-export interface IAssertThrower {
+export interface IAssertRecorder {
   push(error: IAssertError): void;
   show(): IAssertError[];
 }

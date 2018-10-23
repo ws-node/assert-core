@@ -12,7 +12,7 @@ interface ArrayCheckOptions {
 
 export const ArrayValidator: IAssertInvokeMethod<ArrayCheckOptions> = (context, options) => {
   const {
-    thrower: handler,
+    record: handler,
     openTransform: transform,
     propertyValidator: selfValidator,
     isProperty,
@@ -61,7 +61,7 @@ export const ArrayValidator: IAssertInvokeMethod<ArrayCheckOptions> = (context, 
       currentValue: item,
       currentDefine: define
     }, {
-        thrower: handler,
+        record: handler,
         openTransform: transform,
         property: {
           name: propertyName,

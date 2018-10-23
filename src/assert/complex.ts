@@ -13,7 +13,7 @@ interface ComplexCheckOptions {
 
 export const ComplexValidator: IAssertInvokeMethod<ComplexCheckOptions> = (context, options) => {
   const {
-    thrower: handler,
+    record: handler,
     openTransform: transform,
     propertyValidator: selfValidator,
     isProperty,
@@ -30,7 +30,7 @@ export const ComplexValidator: IAssertInvokeMethod<ComplexCheckOptions> = (conte
     currentDefine: define,
     currentValue: value
   }, {
-      thrower: handler,
+      record: handler,
       openTransform: transform,
       isProperty,
       propertyName,

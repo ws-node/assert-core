@@ -2,7 +2,7 @@ import { IAssertInvokeMethod, ErrorLevel } from "../metadata/assert";
 import { Types } from "../core";
 import get from "lodash/get";
 import set from "lodash/set";
-import { Check } from '../utils';
+import { Check } from "../utils";
 
 interface PrimitiveCheckOptions {
   isProperty: boolean;
@@ -11,7 +11,7 @@ interface PrimitiveCheckOptions {
 
 export const PrimitiveValidator: IAssertInvokeMethod<PrimitiveCheckOptions> = (context, options) => {
   const {
-    thrower: handler,
+    record: handler,
     openTransform: transform,
     isProperty,
     defaultValue,

@@ -11,7 +11,7 @@ interface NullCheckOptions {
 
 export const NullValidator: IAssertInvokeMethod<NullCheckOptions> = (context, options) => {
   const {
-    thrower: handler,
+    record: handler,
     openTransform: transform,
     defaultValue,
     nullable,

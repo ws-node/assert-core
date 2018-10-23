@@ -83,7 +83,7 @@ interface CoreCheckOptions {
 
 export const CoreValidator: IAssertInvokeMethod<CoreCheckOptions> = (context, options) => {
   const {
-    thrower: handler,
+    record: handler,
     openTransform: transform
   } = options;
   const {
@@ -110,7 +110,7 @@ export const CoreValidator: IAssertInvokeMethod<CoreCheckOptions> = (context, op
       currentDefine: property.define === null ? undefined : property.define
     }, {
         property,
-        thrower: handler,
+        record: handler,
         openTransform: transform,
         onError: ({ type }) => {
           if (type === ErrorLevel.NullDismatch && transform) {
@@ -129,7 +129,7 @@ export interface PropertyCheckOptions<P = any> {
 
 export const PropertyValidator: IAssertInvokeMethod<PropertyCheckOptions> = (context, options) => {
   const {
-    thrower,
+    record,
     openTransform: transform,
     property,
     onError
