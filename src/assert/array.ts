@@ -7,7 +7,6 @@ import { PropertyCheckOptions } from "./main";
 interface ArrayCheckOptions {
   isProperty: boolean;
   propertyName?: string;
-  isArrayDefine: boolean;
   propertyValidator: IAssertInvokeMethod<PropertyCheckOptions>;
 }
 
@@ -18,17 +17,22 @@ export const ArrayValidator: IAssertInvokeMethod<ArrayCheckOptions> = (context, 
     propertyValidator: selfValidator,
     isProperty,
     defaultValue,
-    isArrayDefine: isArray,
     onError
   } = options;
   const { hostValue, hostDefine, currentValue: value, currentDefine: define } = context;
   if (!define) return true;
+  console.log([
+    hostDefine,
+    define
+  ]);
   const propertyName = get(options, "propertyName", "") || "";
+  const isArray = get(hostDefine, `properties['${propertyName}'].array`, false);
+  console.log(`is array : [${isArray}]`);
   const is = Check.isArray(value);
   if (!isArray && is) {
     handler.push({
       parent: hostDefine || null,
-      message: "The type of value to be checked is not array, but exist valie is.",
+      message: "非数组类型不可以接受一个数组对象。",
       existValue: value,
       shouldDefine: define,
       propertyName
@@ -39,7 +43,7 @@ export const ArrayValidator: IAssertInvokeMethod<ArrayCheckOptions> = (context, 
   if (isArray && !is) {
     handler.push({
       parent: hostDefine || null,
-      message: "Value to be checked is not array, but type is array.",
+      message: "数组类型接受的对象不是数组。",
       existValue: value,
       shouldDefine: define,
       propertyName

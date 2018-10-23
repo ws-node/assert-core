@@ -39,7 +39,7 @@ export const ComplexValidator: IAssertInvokeMethod<ComplexCheckOptions> = (conte
   if (!succ) {
     handler.push({
       parent: hostDefine || null,
-      message: "Type to be checked is not match the value type.",
+      message: "自定义类型和被检查的对象不匹配。",
       existValue: value,
       shouldDefine: define,
       propertyName

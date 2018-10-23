@@ -25,7 +25,7 @@ export const NullValidator: IAssertInvokeMethod<NullCheckOptions> = (context, op
   if ((value === undefined || value === null) && !nullable) {
     handler.push({
       parent: hostDefine || null,
-      message: "Value to be checked is null or undefined, but type is not nullable.",
+      message: "被检查的对象是undefined或null，但目标并不是可空的。",
       existValue: value,
       shouldDefine: define,
       propertyName
@@ -38,7 +38,7 @@ export const NullValidator: IAssertInvokeMethod<NullCheckOptions> = (context, op
   if (isProperty && !!strict && !(propertyName in Object(hostValue))) {
     handler.push({
       parent: hostDefine || null,
-      message: "Value to be checked is undefined, but type is strict nullable.",
+      message: "被检查对象不存在，但目标必须是严格空值。",
       existValue: value,
       shouldDefine: define,
       propertyName

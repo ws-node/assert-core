@@ -22,7 +22,7 @@ export const ObjectValidator: IAssertInvokeMethod<ObjectCheckOptions> = (context
   if (define.constructor === Object && !Check.isObject(value)) {
     handler.push({
       parent: hostDefine || null,
-      message: "The Type of the value to be checked should be object, but exist value is not.",
+      message: "被检查的对象应该是一个对象，但实际值并不是。",
       existValue: value,
       shouldDefine: define,
       propertyName

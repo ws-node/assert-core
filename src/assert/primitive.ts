@@ -26,7 +26,7 @@ export const PrimitiveValidator: IAssertInvokeMethod<PrimitiveCheckOptions> = (c
   if (isPrimitiveType && !is) {
     handler.push({
       parent: hostDefine || null,
-      message: "Value to be checked is primitive, but type is not match the value.",
+      message: "被检查的不可变值和要求的类型不匹配。",
       existValue: value,
       shouldDefine: define,
       propertyName
@@ -40,7 +40,7 @@ export const PrimitiveValidator: IAssertInvokeMethod<PrimitiveCheckOptions> = (c
   if (!isPrimitiveType && Check.isPrimitive(value)) {
     handler.push({
       parent: hostDefine || null,
-      message: "Type of value to be checked is not primitive, but exist value is primitive.",
+      message: "要求一个非不可变对象，但实际得到一个不可变值。",
       existValue: value,
       shouldDefine: define,
       propertyName

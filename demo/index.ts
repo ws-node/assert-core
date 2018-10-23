@@ -35,16 +35,16 @@ setTimeout(() => {
 const result = Assert.transform(TestClass, {
   name: "34524",
   value: 333,
-  values: [{ name: "12" }],
+  values: [{ name: 1342134 }],
   cx: {
     name: "123",
     value: 12,
     values: [
-      { name: "12" },
+      { name: 12 },
       { name: "1234" },
       { name: "123" }
     ],
-    cx: null
+    cx: []
   }
 });
 
