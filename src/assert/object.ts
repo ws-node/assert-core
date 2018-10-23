@@ -25,6 +25,7 @@ export const ObjectValidator: IAssertInvokeMethod<ObjectCheckOptions> = (context
       message: "被检查的对象应该是一个对象，但实际值并不是。",
       existValue: value,
       shouldDefine: define,
+      level: ErrorLevel.TypeDismatch,
       propertyName
     });
     onError({ type: ErrorLevel.TypeDismatch });

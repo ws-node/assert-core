@@ -27,26 +27,26 @@ interface IDoCheckScope {
   context: IAssertContext;
   property: PropertyDefine<any>;
   transform: boolean;
-  thrower: any;
+  record: any;
   onError: (error: any) => void;
 }
 
 function doCheck(scope: IDoCheckScope) {
-  const { context, property, transform, thrower, onError } = scope;
+  const { context, property, transform, record, onError } = scope;
   const step = decideSwitch(context.currentValue, property);
   const common = {
     isProperty: true,
     defaultValue: property.defaultvalue,
     propertyName: property.name,
     openTransform: transform,
-    record: thrower,
+    record,
     onError
   };
   switch (step) {
     case 1:
       return NullValidator(context, { ...common, nullable: property.nullable, strict: property.strict });
     case 2:
-      return ArrayValidator(context, { ...common, propertyValidator: PropertyValidator });
+      return ArrayValidator(context, { ...common, propertyValidator: CoreValidator });
     case 3:
       return ObjectValidator(context, { ...common });
     case 4:
@@ -69,22 +69,42 @@ export const IndexValidator: IAssertInvokeMethod<{}> = (context, options) => {
     currentDefine: define
   } = context;
   if (!define) return true;
-  let result = NullValidator(context, { ...options, strict: false, nullable: false, isProperty: false });
-  if (!result) return false;
-  result = CoreValidator(context, { ...options, isProperty: false });
+  const result = CoreValidator(context, {
+    ...options,
+    isProperty: false,
+    propertyDefine: {
+      null: { check: true, strict: false, nuulable: false },
+      array: { check: true },
+      primitive: { check: true }
+    }
+  });
   if (!result) return false;
   return true;
 };
 
-interface CoreCheckOptions {
+export interface CoreCheckOptions {
   isProperty: boolean;
   propertyName?: string;
+  propertyDefine?: {
+    null: {
+      check: boolean;
+      strict: boolean;
+      nuulable: boolean;
+    };
+    primitive: {
+      check: boolean;
+    };
+    array: {
+      check: boolean;
+    }
+  };
 }
 
 export const CoreValidator: IAssertInvokeMethod<CoreCheckOptions> = (context, options) => {
   const {
     record: handler,
-    openTransform: transform
+    openTransform: transform,
+    isProperty
   } = options;
   const {
     hostValue,
@@ -92,9 +112,26 @@ export const CoreValidator: IAssertInvokeMethod<CoreCheckOptions> = (context, op
     currentDefine: define
   } = context;
 
+  const checkArray = get(options, "propertyDefine.array.check", false);
+  const checkPrimitive = get(options, "propertyDefine.primitive.check", true);
+  const checkNull = get(options, "propertyDefine.null.check", true);
+
   if (!define) return true;
-  let result = PrimitiveValidator(context, options);
-  if (!result) return false;
+  let result = true;
+  if (checkNull) {
+    const strict = get(options, "propertyDefine.null.strict", true);
+    const nullable = get(options, "propertyDefine.null.nullable", true);
+    result = NullValidator(context, { ...options, strict, nullable, isProperty });
+    if (!result) return false;
+  }
+  if (checkPrimitive) {
+    result = PrimitiveValidator(context, options);
+    if (!result) return false;
+  }
+  if (checkArray) {
+    result = ArrayValidator(context, { ...options, propertyValidator: CoreValidator });
+    if (!result) return false;
+  }
   let properties: { [key: string]: PropertyDefine<any> } = {};
   if (define.extends !== null) {
     properties = resolveExtends(properties, get(define, "extends.define", null));
@@ -138,5 +175,5 @@ export const PropertyValidator: IAssertInvokeMethod<PropertyCheckOptions> = (con
     currentDefine: define
   } = context;
   if (!define) return true;
-  return doCheck({ context, property, transform, thrower, onError });
+  return doCheck({ context, property, transform, record, onError });
 };

@@ -43,6 +43,7 @@ export interface IAssertError<P = any, S = any, E = any> {
   propertyName: string;
   shouldDefine: TypeDefine<S>;
   existValue: E;
+  level: ErrorLevel;
 }
 
 export enum ErrorLevel {

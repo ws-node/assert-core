@@ -2,12 +2,12 @@ import get from "lodash/get";
 import set from "lodash/set";
 import { IAssertInvokeMethod, ErrorLevel } from "../metadata/assert";
 import { Check } from "../utils";
-import { PropertyCheckOptions } from "./main";
+import { CoreCheckOptions } from "./main";
 
 interface ArrayCheckOptions {
   isProperty: boolean;
   propertyName?: string;
-  propertyValidator: IAssertInvokeMethod<PropertyCheckOptions>;
+  propertyValidator: IAssertInvokeMethod<CoreCheckOptions>;
 }
 
 export const ArrayValidator: IAssertInvokeMethod<ArrayCheckOptions> = (context, options) => {
@@ -15,19 +15,13 @@ export const ArrayValidator: IAssertInvokeMethod<ArrayCheckOptions> = (context, 
     record: handler,
     openTransform: transform,
     propertyValidator: selfValidator,
-    isProperty,
-    defaultValue,
     onError
   } = options;
   const { hostValue, hostDefine, currentValue: value, currentDefine: define } = context;
   if (!define) return true;
-  console.log([
-    hostDefine,
-    define
-  ]);
   const propertyName = get(options, "propertyName", "") || "";
   const isArray = get(hostDefine, `properties['${propertyName}'].array`, false);
-  console.log(`is array : [${isArray}]`);
+  // console.log(`(${hostDefine === define}) [${propertyName}] is array : [${isArray}]`);
   const is = Check.isArray(value);
   if (!isArray && is) {
     handler.push({
@@ -35,6 +29,7 @@ export const ArrayValidator: IAssertInvokeMethod<ArrayCheckOptions> = (context, 
       message: "非数组类型不可以接受一个数组对象。",
       existValue: value,
       shouldDefine: define,
+      level: ErrorLevel.TypeDismatch,
       propertyName
     });
     onError({ type: ErrorLevel.TypeDismatch });
@@ -46,15 +41,22 @@ export const ArrayValidator: IAssertInvokeMethod<ArrayCheckOptions> = (context, 
       message: "数组类型接受的对象不是数组。",
       existValue: value,
       shouldDefine: define,
+      level: ErrorLevel.TypeDismatch,
       propertyName
     });
     onError({ type: ErrorLevel.TypeDismatch });
     if (!transform) return false;
     // if (isProperty) hostValue[propertyName] = defaultValue;
   }
-  if (!selfValidator) return true;
+  // 当前在对自己检查
+  const isSelf = hostDefine === define;
+  // 当前自身是array对象
+  const isSelfArray = is;
+  // 没有提供检查程序，或者当自身不是array时，不再继续向下检查
+  if (!selfValidator || (isSelf && !isSelfArray)) return true;
   for (const key in (<any>value || [])) {
     const item = get(value, key, undefined);
+    // console.log(`${propertyName}[${key}]`);
     const result = selfValidator({
       hostValue: value,
       hostDefine: define,
@@ -63,15 +65,13 @@ export const ArrayValidator: IAssertInvokeMethod<ArrayCheckOptions> = (context, 
     }, {
         record: handler,
         openTransform: transform,
-        property: {
-          name: propertyName,
-          nullable: false,
-          strict: false,
-          array: false,
-          defaultvalue: undefined,
-          define
-        },
-        onError
+        onError,
+        isProperty: true,
+        propertyDefine: {
+          null: { check: false, strict: false, nuulable: false },
+          array: { check: true },
+          primitive: { check: true }
+        }
       });
     if (!result) {
       if (!transform) return false;

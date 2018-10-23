@@ -58,13 +58,13 @@ function ExtendsFromFactory<E>(extendsTarget: TypeDefineConstructor<E>) {
   };
 }
 
-function PropertyFactory<P = any>(type?: TypeDefineConstructor<P>, defaultValue?: DefaultValueType<P>): PropertyDecorator {
+function PropertyFactory<P = any>(type?: TypeDefineConstructor<P>, defaultValue?: DefaultValueType<P>, isArray?: boolean): PropertyDecorator {
   return function defineProperty<T>(target: T, propertyKey: string, descriptor?: PropertyDescriptor) {
     const property = tryGetProperty(target.constructor, propertyKey);
     const propertyCtor = type || Metadata.tryGetPropertyType(target, propertyKey);
     property.define = tryGetType(propertyCtor);
     if (defaultValue === DEFAULT_UNDEFINED) {
-      property.defaultvalue = _resolveDefaultValue(propertyCtor);
+      property.defaultvalue = _resolveDefaultValue(propertyCtor, isArray);
     } else {
       property.defaultvalue = defaultValue;
     }
@@ -79,7 +79,7 @@ function ListFactory(...args: any[]) {
   return function defineProperty<T>(target: T, propertyKey: string, descriptor?: PropertyDescriptor) {
     const property = tryGetProperty(target.constructor, propertyKey);
     property.array = true;
-    PropertyFactory(type, defaultValue)(target, propertyKey, descriptor);
+    PropertyFactory(type, defaultValue, true)(target, propertyKey, descriptor);
   };
 }
 
@@ -120,7 +120,8 @@ function _resolveTypeDefaultValue(...args: any[]) {
   };
 }
 
-function _resolveDefaultValue<T>(ctor: TypeDefineConstructor<T>): any {
+function _resolveDefaultValue<T>(ctor: TypeDefineConstructor<T>, isArray = false): any {
+  if (isArray) return [];
   switch (ctor) {
     case Number: return 0;
     case String: return "";

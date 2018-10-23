@@ -2,15 +2,29 @@ import { createThrower } from "./base";
 import { TypeDefineConstructor } from "../metadata";
 import { IndexValidator } from "./main";
 import { Types } from "..";
+import { IAssertError, ErrorLevel } from "../metadata/assert";
+import get from "lodash/get";
+
+function errorsReader(errors: IAssertError[]): string[] {
+  return (errors || []).sort((a, b) => {
+    return a.level === ErrorLevel.NullDismatch ? -1 : 1;
+  }).map(
+    i => `${
+      i.level === ErrorLevel.NullDismatch ? "WARNING" : "ERROR"
+      } in [${
+      get(i, "parent.constructor.name", "--")
+      }]: => ${
+      i.message
+      } #(${i.propertyName || "[unknown]"})# @should: ${
+      get(i, "shouldDefine.constructor.name", "--")
+      } -> @exist: ${
+      JSON.stringify(get(i, "existValue"))
+      }`
+  );
+}
 
 export const Assert = {
   valid<T>(type: TypeDefineConstructor<T>, value: any) {
-    // const res = assertType(type, value, { useDefault: false });
-    // if (res === true) {
-    //   return { success: true, errors: null, result: value };
-    // } else {
-    //   return { success: false, errors: res, result: value };
-    // }
     const handler = createThrower();
     IndexValidator({
       hostValue: value,
@@ -20,18 +34,12 @@ export const Assert = {
     }, { openTransform: false, record: handler, onError: () => { } });
     const errors = handler.show();
     if (errors.length === 0) {
-      return { success: true, errors: null, result: value };
+      return { success: true, errors: [], result: value };
     } else {
-      return { success: false, errors, result: value };
+      return { success: false, errors: errorsReader(errors), result: value };
     }
   },
   transform<T>(type: TypeDefineConstructor<T>, value: any) {
-    // const res = assertType(type, value, { useDefault: true });
-    // if (res === true) {
-    //   return { success: true, errors: null, result: value };
-    // } else {
-    //   return { success: false, errors: res, result: value };
-    // }
     const handler = createThrower();
     IndexValidator({
       hostValue: value,
@@ -41,9 +49,9 @@ export const Assert = {
     }, { openTransform: true, record: handler, onError: () => { } });
     const errors = handler.show();
     if (errors.length === 0) {
-      return { success: true, errors: null, result: value };
+      return { success: true, errors: [], result: value };
     } else {
-      return { success: false, errors, result: value };
+      return { success: false, errors: errorsReader(errors), result: value };
     }
   }
 };

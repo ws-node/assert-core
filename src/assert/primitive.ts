@@ -13,8 +13,6 @@ export const PrimitiveValidator: IAssertInvokeMethod<PrimitiveCheckOptions> = (c
   const {
     record: handler,
     openTransform: transform,
-    isProperty,
-    defaultValue,
     onError
   } = options;
   const { hostValue, hostDefine, currentValue: value, currentDefine: define } = context;
@@ -29,6 +27,7 @@ export const PrimitiveValidator: IAssertInvokeMethod<PrimitiveCheckOptions> = (c
       message: "被检查的不可变值和要求的类型不匹配。",
       existValue: value,
       shouldDefine: define,
+      level: ErrorLevel.TypeDismatch,
       propertyName
     });
     onError({ type: ErrorLevel.TypeDismatch });
@@ -43,6 +42,7 @@ export const PrimitiveValidator: IAssertInvokeMethod<PrimitiveCheckOptions> = (c
       message: "要求一个非不可变对象，但实际得到一个不可变值。",
       existValue: value,
       shouldDefine: define,
+      level: ErrorLevel.TypeDismatch,
       propertyName
     });
     onError({ type: ErrorLevel.TypeDismatch });

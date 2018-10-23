@@ -1,6 +1,7 @@
 import { DefineType, ExtendsFrom, Primitive, Types, List, assertType, Nullable, Complex } from "../src";
 import { Assert } from "../src/assert";
 import get = require("lodash/get");
+import { ErrorLevel } from "../src/metadata/assert";
 
 @DefineType()
 abstract class TestBaseClass {
@@ -15,7 +16,6 @@ abstract class TestBaseClass {
 abstract class TestClass extends TestBaseClass {
 
   @Primitive(Number, -1)
-  // @Nullable()
   public abstract value: number;
 
   @List(TestBaseClass)
@@ -34,31 +34,27 @@ setTimeout(() => {
 
 const result = Assert.transform(TestClass, {
   name: "34524",
-  value: 333,
-  values: [{ name: 1342134 }],
+  value: 999,
+  values: [{ name: "1342134" }],
   cx: {
     name: "123",
     value: 12,
     values: [
       { name: 12 },
-      { name: "1234" },
+      { name: false },
       { name: "123" }
     ],
-    cx: []
+    cx: {
+      name: "34524",
+      value: 543242,
+      values: null
+    }
   }
 });
 
 console.log(result.success);
-console.log(JSON.stringify(result.result));
-(result.errors || []).map(
-  i => console.log(`ERROR in [${
-    get(i, "parent.constructor.name", "--")
-    }]: => ${
-    i.message
-    } #(${i.propertyName || "[unknown]"})# @should: ${
-    get(i, "shouldDefine.constructor.name", "--")
-    } -> @exist: ${
-    JSON.stringify(get(i, "existValue"))
-    }`)
-);
+console.log("------");
+console.log(JSON.stringify(result.result, undefined, "  "));
+console.log("------");
+result.errors.forEach(i => console.log(i));
 

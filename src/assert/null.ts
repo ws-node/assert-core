@@ -28,6 +28,7 @@ export const NullValidator: IAssertInvokeMethod<NullCheckOptions> = (context, op
       message: "被检查的对象是undefined或null，但目标并不是可空的。",
       existValue: value,
       shouldDefine: define,
+      level: ErrorLevel.NullDismatch,
       propertyName
     });
     onError({ type: ErrorLevel.NullDismatch });
@@ -41,6 +42,7 @@ export const NullValidator: IAssertInvokeMethod<NullCheckOptions> = (context, op
       message: "被检查对象不存在，但目标必须是严格空值。",
       existValue: value,
       shouldDefine: define,
+      level: ErrorLevel.NullDismatch,
       propertyName
     });
     onError({ type: ErrorLevel.NullDismatch });
